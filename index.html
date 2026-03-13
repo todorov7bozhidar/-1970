@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="bg">
+<head>
+    <meta charset="UTF-8">
+    <title>Превенция на опорно-двигателната система / Божидар Тодоров / VIII</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #0b1a2f;  /* тъмносин, почти нощен */
+            font-family: 'Inter', 'Segoe UI', Roboto, system-ui, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px 30px 30px;
+        }
+
+        /* модерен хедър с бяло злато */
+        .header {
+            background: rgba(10, 30, 50, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-bottom: 2px solid rgba(100, 180, 255, 0.5);
+            border-radius: 48px 48px 20px 20px;
+            color: #e0f0ff;
+            text-align: center;
+            padding: 28px 30px 20px;
+            font-size: clamp(24px, 5vw, 38px);
+            font-weight: 500;
+            letter-spacing: -0.5px;
+            box-shadow: 0 20px 40px -10px rgba(0, 15, 30, 0.8);
+            margin-bottom: 20px;
+            line-height: 1.2;
+            text-shadow: 0 2px 5px rgba(0,0,0,0.5);
+        }
+
+        .header span {
+            font-weight: 300;
+            color: #9fcbff;
+            display: inline-block;
+            margin: 0 8px;
+        }
+
+        .header strong {
+            font-weight: 600;
+            color: white;
+            background: linear-gradient(145deg, #7abfff, #3f8fd2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Прогрес бар контейнер - нов елемент */
+        .progress-container {
+            width: 100%;
+            max-width: 800px;
+            margin: 0 auto 15px auto;
+            background: rgba(0, 20, 40, 0.6);
+            border-radius: 60px;
+            height: 28px;
+            border: 1px solid #2f5a85;
+            padding: 3px;
+            backdrop-filter: blur(4px);
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 8px 16px -8px #000;
+        }
+
+        .progress-fill {
+            height: 100%;
+            width: 12.5%; /* 1/8 = 12.5% - ще се променя от JS */
+            background: linear-gradient(90deg, #7fc9ff, #2f8ed0, #1c6da8);
+            border-radius: 60px;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 12px #3fa2f0;
+            position: relative;
+            left: 0;
+            top: 0;
+        }
+
+        /* основен контейнер за визуализация */
+        .viewer-wrapper {
+            width: 100%;
+            max-width: 1400px;
+            margin: 0 auto 20px;
+            background: rgba(5, 20, 35, 0.7);
+            backdrop-filter: blur(4px);
+            border-radius: 42px;
+            border: 1px solid rgba(120, 180, 255, 0.3);
+            box-shadow: 0 30px 45px -15px #030d1a, inset 0 1px 2px rgba(255,255,255,0.08);
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            transition: box-shadow 0.3s;
+        }
+
+        .viewer-wrapper:hover {
+            box-shadow: 0 40px 60px -12px #001428, inset 0 0 0 1px rgba(200, 230, 255, 0.2);
+        }
+
+        .viewer-inner {
+            background: #0e243b;
+            border-radius: 32px;
+            padding: 12px;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid #2b4d73;
+        }
+
+        #mainImage {
+            max-width: 100%;
+            max-height: 70vh;
+            border-radius: 28px;
+            box-shadow: 0 20px 30px -5px black;
+            transition: transform 0.2s ease, box-shadow 0.3s;
+            object-fit: contain;
+            background: #102c40; /* запълване ако има празнини */
+        }
+
+        #mainImage:hover {
+            transform: scale(1.005);
+            box-shadow: 0 30px 45px -8px #000d1a;
+        }
+
+        /* стрелки — минималистични, стъклени */
+        .arrow {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 44px;
+            width: 75px;
+            height: 75px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(15, 40, 65, 0.5);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+            border: 1.5px solid rgba(255, 255, 255, 0.2);
+            color: #f0f9ff;
+            border-radius: 50px;
+            cursor: pointer;
+            user-select: none;
+            transition: 0.25s;
+            font-weight: 200;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.6);
+            z-index: 10;
+        }
+
+        .arrow:hover {
+            background: rgba(30, 80, 130, 0.8);
+            border-color: #b0e0ff;
+            color: white;
+            width: 82px;
+            font-size: 52px;
+            box-shadow: 0 10px 28px #00284d;
+        }
+
+        #leftArrow {
+            left: 15px;
+        }
+        #rightArrow {
+            right: 15px;
+        }
+
+        /* модерни миниатюрни бутони */
+        .thumbs {
+            width: 100%;
+            max-width: 900px;
+            margin: 15px auto 0;
+            text-align: center;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 12px;
+            padding: 18px 12px;
+            background: rgba(0, 20, 40, 0.4);
+            backdrop-filter: blur(8px);
+            border-radius: 80px;
+            border: 1px solid rgba(80, 160, 255, 0.25);
+        }
+
+        .thumbs button {
+            background: transparent;
+            border: 1.5px solid #306a9c;
+            color: #d1e5ff;
+            width: 58px;
+            height: 58px;
+            border-radius: 40px;
+            font-size: 1.4rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 6px 12px rgba(0, 10, 20, 0.6);
+            backdrop-filter: blur(4px);
+        }
+
+        .thumbs button:hover {
+            background: #2569a3;
+            border-color: #b3daff;
+            color: white;
+            transform: scale(1.15);
+            box-shadow: 0 10px 18px #001e3b;
+        }
+
+        /* активно копче - син фон и бял текст */
+        .thumbs button.active-thumb {
+            background: #2f8ed0;
+            border-color: white;
+            color: white;
+            box-shadow: 0 0 20px #3fa2f0;
+            transform: scale(1.1);
+        }
+
+        /* футер или допълнителна информация */
+        .info-footer {
+            text-align: center;
+            color: #6c92b0;
+            margin-top: 25px;
+            font-size: 1rem;
+            letter-spacing: 1px;
+            border-top: 1px dashed #2f5575;
+            padding-top: 16px;
+            width: fit-content;
+            margin-left: auto;
+            margin-right: auto;
+            padding-left: 30px;
+            padding-right: 30px;
+        }
+
+        /* за много малки екрани */
+        @media (max-width: 600px) {
+            body { padding: 12px; }
+            .arrow { width: 55px; height: 55px; font-size: 34px; }
+            .thumbs { gap: 6px; }
+            .thumbs button { width: 44px; height: 44px; font-size: 1.2rem; }
+            .progress-container { max-width: 95%; }
+        }
+    </style>
+</head>
+<body>
+
+<div class="header">
+    Превенция на опорно-двигателната система  
+    <span>🦴🫁🦴</span>  
+    <strong>Божидар Тодоров</strong>  
+    <span>|</span>  
+    <strong>VIII "A" клас</strong>
+</div>
+
+<!-- НОВО: Прогрес бар -->
+<div class="progress-container">
+    <div class="progress-fill" id="progressFill" style="width: 12.5%"></div>
+</div>
+
+<div class="viewer-wrapper">
+    <span class="arrow" id="leftArrow" onclick="prevImage()">‹</span>
+    <div class="viewer-inner">
+        <img id="mainImage" src="ОДС1.jpg" alt="Превенция ОДС">
+    </div>
+    <span class="arrow" id="rightArrow" onclick="nextImage()">›</span>
+</div>
+
+<div class="thumbs" id="thumbContainer">
+    <!-- Бутоните ще се генерират от JavaScript (ОДС1 до ОДС8) -->
+</div>
+
+<div class="info-footer">
+    ⚕️ осем ключови визуализации · здравословни навици · профилактика
+</div>
+
+<script>
+    (function() {
+        // --- Конфигурация ---
+        const totalImages = 8;                 // ОДС1.jpg ... ОДС8.jpg
+        const baseName = "ОДС";                // променено от "Мат" на "ОДС"
+        let currentImage = 1;
+
+        // елементи
+        const mainImg = document.getElementById("mainImage");
+        const progressFill = document.getElementById("progressFill");
+        let thumbButtons = []; // ще ги пълним по-късно
+
+        // функция за обновяване на изображението, прогреса и активния бутон
+        function updateImageAndProgress() {
+            // 1. снимка
+            mainImg.src = baseName + currentImage + ".jpg";
+            mainImg.alt = `ОДС визуализация ${currentImage}`;
+
+            // 2. прогрес бар (широчина в проценти)
+            const percent = (currentImage / totalImages) * 100;
+            progressFill.style.width = percent + '%';
+
+            // 3. маркиране на активния бутон
+            thumbButtons.forEach((btn, index) => {
+                const btnNumber = index + 1; // понеже индексите са 0-базирани
+                if (btnNumber === currentImage) {
+                    btn.classList.add('active-thumb');
+                } else {
+                    btn.classList.remove('active-thumb');
+                }
+            });
+        }
+
+        // навигиране
+        window.nextImage = function() {
+            currentImage++;
+            if (currentImage > totalImages) currentImage = 1;
+            updateImageAndProgress();
+        };
+
+        window.prevImage = function() {
+            currentImage--;
+            if (currentImage < 1) currentImage = totalImages;
+            updateImageAndProgress();
+        };
+
+        window.loadImage = function(n) {
+            if (n >= 1 && n <= totalImages) {
+                currentImage = n;
+                updateImageAndProgress();
+            }
+        };
+
+        // генериране на бутоните в thumbs контейнера и запазване на референции
+        const thumbContainer = document.getElementById("thumbContainer");
+        if (thumbContainer) {
+            thumbContainer.innerHTML = ""; // изчиства ако има нещо
+            for (let i = 1; i <= totalImages; i++) {
+                const btn = document.createElement("button");
+                btn.textContent = i;
+                btn.setAttribute("aria-label", `Премини към изображение ОДС ${i}`);
+                btn.onclick = (function(index) {
+                    return function() { loadImage(index); };
+                })(i);
+                thumbContainer.appendChild(btn);
+                thumbButtons.push(btn); // добавяме в масива
+            }
+        }
+
+        // задаване на първо изображение (ОДС1.jpg) и активен бутон / прогрес
+        updateImageAndProgress();
+
+        // добавяне на слушатели за клавиатура (стрелки)
+        window.addEventListener('keydown', function(e) {
+            if (e.key === 'ArrowLeft') {
+                e.preventDefault();
+                prevImage();
+            } else if (e.key === 'ArrowRight') {
+                e.preventDefault();
+                nextImage();
+            }
+        });
+    })();
+</script>
+
+<!-- гарантираме зареждане на шрифт Inter за по-модерен вид -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,300;14..32,500;14..32,600&display=swap" rel="stylesheet">
+</body>
+  </html>
